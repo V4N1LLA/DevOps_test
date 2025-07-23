@@ -1,0 +1,70 @@
+---
+# Source: springboot-demo-chart/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot-demo-springboot-demo-chart
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: springboot-demo-chart
+    app.kubernetes.io/instance: springboot-demo
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+---
+# Source: springboot-demo-chart/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-demo-springboot-demo-chart
+  labels:
+    app.kubernetes.io/name: springboot-demo-chart
+    app.kubernetes.io/instance: springboot-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: springboot-demo-chart
+      app.kubernetes.io/instance: springboot-demo
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: springboot-demo-chart
+        app.kubernetes.io/instance: springboot-demo
+    spec:
+      containers:
+        - name: springboot-demo-chart
+          image: "v4n1ll4/springboot-demo:latest"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+# Source: springboot-demo-chart/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "springboot-demo-springboot-demo-chart-test-connection"
+  labels:
+    app.kubernetes.io/name: springboot-demo-chart
+    app.kubernetes.io/instance: springboot-demo
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['springboot-demo-springboot-demo-chart:80']
+  restartPolicy: Never
