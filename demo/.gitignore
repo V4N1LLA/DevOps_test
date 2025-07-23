@@ -1,0 +1,47 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Eclipse / STS
+.classpath
+.project
+.settings/
+.factorypath
+.springBeans
+.apt_generated
+.sts4-cache
+bin/
+
+# NetBeans
+/nbbuild/
+/dist/
+/nbdist/
+/nbproject/private/
+/.nb-gradle/
+
+# VS Code
+.vscode/
+
+# 기타
+*.log
+*.env
+*.db
+*.DS_Store
+HELP.md
+
+# 제외 예외
+!**/src/main/**/build/
+!**/src/test/**/build/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+!**/src/main/**/out/
+!**/src/test/**/out/
