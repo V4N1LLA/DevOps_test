@@ -23,8 +23,8 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t v4n1ll4/springboot-demo:latest .
-          docker push v4n1ll4/springboot-demo:latest
+          docker build -t v4n1ll4/springboot-demo:${{ github.sha }} .
+          docker push v4n1ll4/springboot-demo:${{ github.sha }}  # ${GITHUB_SHA}를 사용하여 고유한 태그로 설정
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
@@ -36,29 +36,14 @@ jobs:
           mkdir -p $HOME/.kube
           echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
 
-      - name: Deploy with Helm
-        run: |
-          helm upgrade --install springboot-demo ./springboot-demo-chart --namespace default --create-namespace
-
       - name: Lint Helm chart
         run: helm lint ./springboot-demo-chart
-
-      - name: Set image tag
-        id: vars
-        run: echo "TAG=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
-
-      - name: Build and push Docker image
-        run: |
-          docker build -t v4n1ll4/springboot-demo:${{ steps.vars.outputs.TAG }} .
-          docker push v4n1ll4/springboot-demo:${{ steps.vars.outputs.TAG }}
 
       - name: Deploy with Helm
         run: |
           helm upgrade --install springboot-demo ./springboot-demo-chart \
             --namespace default --create-namespace \
-            --set image.tag=${{ steps.vars.outputs.TAG }}
+            --set image.tag=${{ github.sha }}  # Docker 이미지 태그와 동일하게 설정
 
       - name: Preview manifest
         run: helm template springboot-demo ./springboot-demo-chart
-
-
