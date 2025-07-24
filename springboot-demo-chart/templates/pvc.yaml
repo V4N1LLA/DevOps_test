@@ -6,7 +6,9 @@ metadata:
   labels:
     {{- include "springboot-demo.labels" . | nindent 4 }}
 spec:
-  storageClassName: standard
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass }}
+  {{- end }}
   accessModes:
     - ReadWriteOnce
   resources:
