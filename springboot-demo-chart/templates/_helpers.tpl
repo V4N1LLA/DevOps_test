@@ -1,33 +1,26 @@
-{{/*
-Common labels
-*/}}
-{{- define "springboot-demo-chart.labels" -}}
-app.kubernetes.io/name: {{ .Chart.Name }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{- define "springboot-demo.name" -}}
+springboot-demo
 {{- end }}
 
-{{/*
-Selector labels
-*/}}
-{{- define "springboot-demo-chart.selectorLabels" -}}
-app.kubernetes.io/name: {{ .Chart.Name }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{- define "springboot-demo.fullname" -}}
+{{ .Release.Name }}-{{ include "springboot-demo.name" . }}
 {{- end }}
 
-{{/*
-Service account name
-*/}}
-{{- define "springboot-demo-chart.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create -}}
-{{ default (include "springboot-demo-chart.fullname" .) .Values.serviceAccount.name }}
-{{- else -}}
-{{ default "default" .Values.serviceAccount.name }}
-{{- end -}}
-{{- end }}
-
-{{/*
-Full name
-*/}}
+{{/* alias: tests에서 사용하는 springboot-demo-chart.fullname */}}
 {{- define "springboot-demo-chart.fullname" -}}
-{{ .Release.Name }}-{{ .Chart.Name }}
+  {{ include "springboot-demo.fullname" . }}
+{{- end }}
+
+{{- define "springboot-demo.labels" -}}
+app.kubernetes.io/name: {{ include "springboot-demo.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/* alias: tests에서 사용하는 springboot-demo-chart.labels */}}
+{{- define "springboot-demo-chart.labels" -}}
+  {{ include "springboot-demo.labels" . | indent 2 }}
+{{- end }}
+
+{{- define "springboot-demo.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "springboot-demo.name" . }}
 {{- end }}

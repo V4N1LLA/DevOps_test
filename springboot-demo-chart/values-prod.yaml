@@ -1,0 +1,19 @@
+replicaCount: 3
+service: { type: LoadBalancer }
+ingress:
+  enabled: true
+  className: alb
+  annotations:
+    alb.ingress.kubernetes.io/target-type: ip
+  hosts:
+    - host: demo.example.com
+      paths: [ { path: "/", pathType: Prefix } ]
+persistence:
+  enabled: true
+  storageClass: gp2
+  size: 5Gi
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70

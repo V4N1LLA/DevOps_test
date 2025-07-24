@@ -1,0 +1,53 @@
+name: CI / Kind + Helm
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  kind-test:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: springboot-demo
+      IMAGE_TAG: test
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Build jar
+        run: ./gradlew bootJar
+
+      - name: Build docker image
+        run: docker build -t $IMAGE_NAME:$IMAGE_TAG .
+
+      - uses: helm/kind-action@v1
+
+      - name: Load image to kind
+        run: kind load docker-image $IMAGE_NAME:$IMAGE_TAG
+
+      - uses: azure/setup-helm@v3
+
+      - name: Helm lint
+        run: helm lint springboot-demo-chart
+
+      - name: Helm install to Kind
+        run: |
+          helm upgrade --install demo springboot-demo-chart \
+            -f springboot-demo-chart/values-local.yaml \
+            --set image.repository=$IMAGE_NAME \
+            --set image.tag=$IMAGE_TAG \
+            --wait --timeout 180s
+
+      - name: Wait for pods
+        run: kubectl wait pod -l app.kubernetes.io/name=springboot-demo --for=condition=ready --timeout=180s
+
+      - name: Smoke test inside cluster
+        run: |
+          kubectl run curl --rm -it --restart=Never --image=curlimages/curl:8.7.1 \
+            -- curl -sf http://demo-springboot-demo.demo.svc.cluster.local/api/hello

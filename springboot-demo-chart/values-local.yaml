@@ -1,0 +1,34 @@
+replicaCount: 1
+
+image:
+  repository: v4n1ll4/springboot-demo
+  tag: local
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 8080
+  nodePort: 30080
+
+# 로컬 테스트 시 PVC 없이 EmptyDir 사용
+persistence:
+  enabled: false
+
+ingress:
+  enabled: false
+
+serviceAccount:
+  create: true
+  name: springboot-demo-sa
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false

@@ -6,21 +6,14 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  type: LoadBalancer
+  type: NodePort
   port: 80
   targetPort: 8080
+  nodePort: 30080
 
-resources:
-  requests:
-    cpu: 100m
-    memory: 128Mi
-  limits:
-    cpu: 500m
-    memory: 512Mi
-
-nodeSelector: {}
-tolerations: []
-affinity: []
+persistence:
+  enabled: true
+  size: 1Gi
 
 ingress:
   enabled: true
@@ -32,7 +25,22 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
-  tls: []
+
+serviceAccount:
+  create: true
+  name: springboot-demo-sa
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
 
 autoscaling:
   enabled: false
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
