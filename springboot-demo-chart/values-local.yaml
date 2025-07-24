@@ -1,26 +1,32 @@
 replicaCount: 1
 
+probes:
+  enabled: true
+  liveness:
+    path: /actuator/health
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 2
+  readiness:
+    path: /actuator/health
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    timeoutSeconds: 2
+
+
 image:
-  repository: v4n1ll4/springboot-demo
   tag: local
-  pullPolicy: IfNotPresent
 
 service:
-  type: NodePort
+  type: ClusterIP   # CI/로컬 내부 테스트는 ClusterIP면 충분
   port: 80
   targetPort: 8080
-  nodePort: 30080
 
-# 로컬 테스트 시 PVC 없이 EmptyDir 사용
 persistence:
-  enabled: false
+  enabled: false    # PVC 없이 EmptyDir (템플릿에서 enabled=false면 volume 미마운트)
 
 ingress:
   enabled: false
-
-serviceAccount:
-  create: true
-  name: springboot-demo-sa
 
 resources:
   requests:
@@ -29,6 +35,3 @@ resources:
   limits:
     cpu: 200m
     memory: 256Mi
-
-autoscaling:
-  enabled: false

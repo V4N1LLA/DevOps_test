@@ -9,8 +9,10 @@ spec:
   selector:
     {{- include "springboot-demo.selectorLabels" . | nindent 4 }}
   ports:
-    - port: {{ .Values.service.port }}
+    - name: http
+      port: {{ .Values.service.port }}
       targetPort: {{ .Values.service.targetPort }}
-      {{- if .Values.service.nodePort }}
+      protocol: TCP
+      {{- if and (eq .Values.service.type "NodePort") (hasKey .Values.service "nodePort") }}
       nodePort: {{ .Values.service.nodePort }}
       {{- end }}
