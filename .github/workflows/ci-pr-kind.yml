@@ -57,7 +57,11 @@ jobs:
 
       - name: Smoke test inside cluster
         run: |
-          kubectl run curl -n demo --restart=Never --image=curlimages/curl:8.7.1 --attach --rm -- \
-            curl -sSf http://demo-springboot-demo.demo.svc.cluster.local/api/hello
+          kubectl -n demo create job curl --image=curlimages/curl:8.7.1 -- \
+            curl -sSf http://demo-springboot-demo:80/api/hello
+          kubectl -n demo wait --for=condition=Complete job/curl --timeout=60s
+          kubectl -n demo logs job/curl
+          kubectl -n demo delete job curl
+
 
 
