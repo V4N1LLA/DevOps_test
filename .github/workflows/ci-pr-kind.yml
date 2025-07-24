@@ -30,6 +30,10 @@ jobs:
         run: docker build -t $IMAGE_NAME:$IMAGE_TAG .
 
       - uses: helm/kind-action@v1
+        with:
+          cluster_name: kind
+      - name: Check kind clusters
+        run: kind get clusters
 
       - name: Load image to kind
         run: kind load docker-image $IMAGE_NAME:$IMAGE_TAG
