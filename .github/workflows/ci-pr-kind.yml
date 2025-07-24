@@ -49,12 +49,14 @@ jobs:
             -f springboot-demo-chart/values-local.yaml \
             --set image.repository=$IMAGE_NAME \
             --set image.tag=$IMAGE_TAG \
+            --namespace demo --create-namespace \
             --wait --timeout 180s
 
       - name: Wait for pods
-        run: kubectl wait pod -l app.kubernetes.io/name=springboot-demo --for=condition=ready --timeout=180s
+        run: kubectl wait pod -l app.kubernetes.io/name=springboot-demo -n demo --for=condition=ready --timeout=180s
 
       - name: Smoke test inside cluster
         run: |
-          kubectl run curl --rm -it --restart=Never --image=curlimages/curl:8.7.1 \
+          kubectl run curl -n demo --rm --restart=Never --image=curlimages/curl:8.7.1 \
             -- curl -sf http://demo-springboot-demo.demo.svc.cluster.local/api/hello
+
