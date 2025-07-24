@@ -1,5 +1,19 @@
 replicaCount: 1
 
+probes:
+  enabled: true
+  liveness:
+    path: /actuator/health
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 2
+  readiness:
+    path: /actuator/health
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    timeoutSeconds: 2
+
+
 image:
   tag: local
 
@@ -21,16 +35,3 @@ resources:
   limits:
     cpu: 200m
     memory: 256Mi
-
-probes:
-  enabled: true
-  liveness:
-    path: /actuator/health
-    initialDelaySeconds: 60
-    periodSeconds: 10
-    timeoutSeconds: 2
-  readiness:
-    path: /actuator/health
-    initialDelaySeconds: 30
-    periodSeconds: 5
-    timeoutSeconds: 2
