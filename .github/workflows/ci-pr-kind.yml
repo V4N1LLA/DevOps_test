@@ -57,11 +57,18 @@ jobs:
 
       - name: Smoke test inside cluster
         run: |
-          kubectl -n demo create job curl --image=curlimages/curl:8.7.1 -- \
-            curl -sSf http://demo-springboot-demo:80/api/hello
-          kubectl -n demo wait --for=condition=Complete job/curl --timeout=60s
+          kubectl -n demo create job curl --image=curlimages/curl:8.7.1 -- /bin/sh -c "curl -sSf http://demo-springboot-demo:80/api/hello"
+          kubectl -n demo wait --for=condition=complete job/curl --timeout=60s || {
+            echo ">>> job describe"; kubectl -n demo describe job curl;
+            echo ">>> pods of job";  kubectl -n demo get pods -l job-name=curl -o wide;
+            POD=$(kubectl -n demo get pod -l job-name=curl -o jsonpath='{.items[0].metadata.name}');
+            echo ">>> pod describe"; kubectl -n demo describe pod $POD;
+            echo ">>> pod logs";     kubectl -n demo logs $POD --all-containers=true;
+            exit 1;
+          }
           kubectl -n demo logs job/curl
-          kubectl -n demo delete job curl
+          kubectl -n demo delete job curl --ignore-not-found=true
+
 
 
 
