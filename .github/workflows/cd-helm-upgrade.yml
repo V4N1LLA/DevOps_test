@@ -1,7 +1,7 @@
 name: CD / Helm upgrade
 on:
   push:
-    branches: [ main ]
+    tags: [ 'v*' ]
   workflow_dispatch:
 
 env:
@@ -31,7 +31,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - id: meta
-        run: echo "TAG=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+        run: echo "TAG=v$(date -u +%Y-%m-%d-%H-%M-%S)" >> $GITHUB_OUTPUT
 
       - name: Build & push image
         run: |
