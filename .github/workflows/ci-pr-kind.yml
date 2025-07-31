@@ -1,0 +1,74 @@
+name: CI / Kind + Helm
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  kind-test:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: springboot-demo
+      IMAGE_TAG: test
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Build jar
+        run: ./gradlew bootJar
+
+      - name: Build docker image
+        run: docker build -t $IMAGE_NAME:$IMAGE_TAG .
+
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: kind
+      - name: Check kind clusters
+        run: kind get clusters
+
+      - name: Load image to kind
+        run: kind load docker-image $IMAGE_NAME:$IMAGE_TAG
+
+      - uses: azure/setup-helm@v3
+
+      - name: Helm lint
+        run: helm lint springboot-demo-chart
+
+      - name: Helm install to Kind
+        run: |
+          helm upgrade --install demo springboot-demo-chart \
+            -f springboot-demo-chart/values-local.yaml \
+            --set image.repository=$IMAGE_NAME \
+            --set image.tag=$IMAGE_TAG \
+            --namespace demo --create-namespace \
+            --wait --timeout 180s
+
+      - name: Wait for pods
+        run: kubectl wait pod -l app.kubernetes.io/name=springboot-demo -n demo --for=condition=ready --timeout=180s
+
+      - name: Wait for endpoints
+        run: kubectl wait --for=jsonpath='{.subsets[*].addresses[*].ip}' endpoints/demo-springboot-demo -n demo --timeout=90s
+
+      - name: Smoke test (Job)
+        run: |
+          kubectl -n demo create job curl --image=curlimages/curl:8.7.1 -- \
+            sh -c "curl -sS --retry 8 --retry-delay 2 --retry-connrefused --fail http://demo-springboot-demo:80/api/hello"
+          kubectl -n demo wait --for=condition=complete job/curl --timeout=90s || {
+            echo ">>> job describe"; kubectl -n demo describe job curl;
+            echo ">>> pods of job";  kubectl -n demo get pods -l job-name=curl -o wide;
+            POD=$(kubectl -n demo get pod -l job-name=curl -o jsonpath='{.items[0].metadata.name}');
+            echo ">>> pod describe"; kubectl -n demo describe pod $POD;
+            echo ">>> pod logs";     kubectl -n demo logs $POD --all-containers=true;
+            exit 1;
+          }
+          kubectl -n demo logs job/curl
+          kubectl -n demo delete job curl --ignore-not-found=true

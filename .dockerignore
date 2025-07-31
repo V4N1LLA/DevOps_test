@@ -1,0 +1,7 @@
+.gradle
+build/
+!build/libs/*.jar
+out/
+.idea
+.vscode
+.git
